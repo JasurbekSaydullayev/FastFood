@@ -25,4 +25,6 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path("__debug__/", include("debug_toolbar.urls")),
     path('users/', include('users.api.urls')),
+    path('foods/', include('foods.api.urls')),
+    path('orders/', include('order.api.urls')),
 ]
