@@ -6,6 +6,11 @@ class CustomerOrAdmin(permissions.BasePermission):
         return request.user.is_staff or request.user.type == 'customer'
 
 
+class WaitressOrCourierOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.type != "Customer"
+
+
 class WaitressOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_staff or request.user.type == 'waitress'
@@ -22,3 +27,8 @@ class CanObjectAccess(permissions.BasePermission):
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_staff
+
+
+class CourierOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_staff or request.user.type == 'Courier'

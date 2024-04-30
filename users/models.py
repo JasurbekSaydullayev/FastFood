@@ -7,6 +7,7 @@ from .managers import UserManager
 User_Choice = (
     ('Admin', 'Admin'),
     ('Waitress', 'Waitress'),
+    ('Courier', 'Courier'),
     ('Customer', 'Customer'),
 )
 
