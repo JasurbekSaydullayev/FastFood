@@ -1,9 +1,8 @@
 from decimal import Decimal
 
 from rest_framework import serializers
-from foods.models import Food
-from foods.api.serializers import FoodSerializer
-from .calculate_delivery_time import calculate_delivery_time
+
+from .calculate_delivery_time import calculate_distance
 from ..models import Order, OrderItem
 
 
@@ -30,11 +29,11 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         order_items_data = validated_data.pop('order_items')
         total_price = Decimal(0)
-        location_delivery = f"{validated_data['location_long']},{validated_data['location_lang']}"
-        time_to_delivery = calculate_delivery_time(location_delivery)
-        if time_to_delivery is not None and time_to_delivery > 3600:
+        location_delivery = (validated_data['location_lang'], validated_data['location_long'])
+        delivery_distance = calculate_distance(location_delivery)
+        if delivery_distance > 40:
             raise serializers.ValidationError(
-                "Yetkazib berish vaqti 1 soatda oshib ketganligi sababli, Buyurtma qabul qilinmadi")
+                "Yetkazib berish masofasi 40 km dan oshib ketganligi sababli, Buyurtma qabul qilnmadi")
         delivery_time = 0
         active_orders = Order.objects.filter(status='Qabul qilindi').exclude(id=validated_data.get('id'))
         active_orders = active_orders.prefetch_related('order_items')
@@ -48,10 +47,9 @@ class OrderSerializer(serializers.ModelSerializer):
             item_data['price'] = product.price
             total_price += item_price
         validated_data['price'] = total_price
-        if time_to_delivery is not None:
-            validated_data['delivery_time'] = delivery_time + time_to_delivery / 60
-        else:
-            validated_data['delivery_time'] = delivery_time
+
+        validated_data['delivery_time'] = delivery_time + delivery_distance * 3
+
         order = Order.objects.create(**validated_data)
         for item_data in order_items_data:
             OrderItem.objects.create(order=order, **item_data)
